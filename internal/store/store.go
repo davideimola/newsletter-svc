@@ -159,6 +159,16 @@ func (s *Store) CreatePending(ctx context.Context, email string, confirmHash []b
 		RETURNING `+subscriberColumns, email, confirmHash, now, unsubscribeToken))
 }
 
+// ImportConfirmed adds an address that consented elsewhere, with the time it did. An address
+// already here is left as it is, whatever its state: the list here is the newer truth.
+func (s *Store) ImportConfirmed(ctx context.Context, email, unsubscribeToken, source string, at time.Time) (bool, error) {
+	tag, err := s.pool.Exec(ctx, `INSERT INTO subscribers
+		(email, status, unsubscribe_token, source, created_at, confirmed_at)
+		VALUES ($1, 'confirmed', $2, $3, $4, $4)
+		ON CONFLICT (email) DO NOTHING`, email, unsubscribeToken, source, at)
+	return tag.RowsAffected() == 1, err
+}
+
 // Rearm puts an existing address back to pending with a fresh confirmation link: a pending
 // address asking again, or an unsubscribed one subscribing again.
 func (s *Store) Rearm(ctx context.Context, id int64, confirmHash []byte, now time.Time) error {

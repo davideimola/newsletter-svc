@@ -5,6 +5,8 @@
 //	newsletter-svc migrate    apply the database migrations and exit
 //	newsletter-svc erase EMAIL
 //	                          delete one address and everything stored about it
+//	newsletter-svc import-kit < export.csv
+//	                          add Kit's active subscribers as confirmed
 package main
 
 import (
@@ -47,8 +49,10 @@ func main() {
 			break
 		}
 		err = erase(ctx, os.Args[2])
+	case "import-kit":
+		err = importKit(ctx)
 	default:
-		err = fmt.Errorf("unknown command %q: serve, migrate or erase", cmd)
+		err = fmt.Errorf("unknown command %q: serve, migrate, erase or import-kit", cmd)
 	}
 	if err != nil {
 		slog.Error("fatal", "err", err)
@@ -99,6 +103,24 @@ func erase(ctx context.Context, raw string) error {
 		return err
 	}
 	fmt.Println("Deleted.")
+	return nil
+}
+
+// importKit reads Kit's subscriber export on stdin, so the file never has to be copied into
+// the container: `kubectl exec -i ... -- /newsletter-svc import-kit < export.csv`.
+func importKit(ctx context.Context) error {
+	st, err := openStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	svc := &newsletter.Service{Store: st, Now: time.Now}
+	res, err := svc.ImportKit(ctx, os.Stdin)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Imported %d, already here %d, not active %d, invalid %d.\n",
+		res.Imported, res.Existing, res.Skipped, res.Invalid)
 	return nil
 }
 

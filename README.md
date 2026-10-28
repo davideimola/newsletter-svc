@@ -93,6 +93,8 @@ Environment variables, all required except `LISTEN_ADDR`.
 newsletter-svc              # serve
 newsletter-svc migrate      # apply the database migrations, then exit
 newsletter-svc erase EMAIL  # delete one address and everything stored about it
+newsletter-svc import-kit < export.csv
+                            # add Kit's active subscribers as confirmed, once, at cutover
 ```
 
 ## Development
