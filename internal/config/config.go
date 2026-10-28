@@ -22,8 +22,10 @@ type Config struct {
 	KannonURL    string
 	KannonDomain string
 	KannonAPIKey string
-	SenderEmail  string
-	SenderName   string
+	// KannonAdminToken, optional, lets the admin pages show Kannon's delivery counters.
+	KannonAdminToken string
+	SenderEmail      string
+	SenderName       string
 	// TestRecipient receives every test send.
 	TestRecipient string
 
@@ -58,6 +60,7 @@ func FromEnv() (*Config, error) {
 		KannonURL:          get("KANNON_URL"),
 		KannonDomain:       get("KANNON_DOMAIN"),
 		KannonAPIKey:       get("KANNON_API_KEY"),
+		KannonAdminToken:   opt("KANNON_ADMIN_TOKEN", ""),
 		SenderEmail:        get("SENDER_EMAIL"),
 		SenderName:         get("SENDER_NAME"),
 		TestRecipient:      get("TEST_RECIPIENT"),

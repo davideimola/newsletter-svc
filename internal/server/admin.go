@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/davideimola/newsletter-svc/internal/store"
 )
@@ -27,7 +28,11 @@ func (s *Server) adminHome(w http.ResponseWriter, r *http.Request) {
 	for st, n := range counts {
 		byName[string(st)] = n
 	}
-	s.adminPage(w, r, http.StatusOK, "home", map[string]any{"Counts": byName, "Issues": issues})
+	now := s.svc.Now()
+	s.adminPage(w, r, http.StatusOK, "home", map[string]any{
+		"Counts": byName, "Issues": issues,
+		"Delivery": s.deliveryFor(r.Context(), now.AddDate(0, 0, -30), now, true),
+	})
 }
 
 func (s *Server) adminSubscribers(w http.ResponseWriter, r *http.Request) {
@@ -125,10 +130,16 @@ func (s *Server) adminIssue(w http.ResponseWriter, r *http.Request) {
 		s.adminError(w, err)
 		return
 	}
-	s.adminPage(w, r, http.StatusOK, "issue", map[string]any{
+	data := map[string]any{
 		"Issue": issue, "Confirmed": counts[store.Confirmed], "TestRecipient": s.svc.TestRecipient,
 		"Notice": r.URL.Query().Get("notice"),
-	})
+	}
+	if issue.SentAt != nil {
+		// Kannon counts by Domain and hour, not by issue, so the issue's figures are the hours
+		// around its send. Confirmation emails sent in those hours are counted too.
+		data["Delivery"] = s.deliveryFor(r.Context(), issue.SentAt.Truncate(time.Hour), issue.SentAt.Add(72*time.Hour), false)
+	}
+	s.adminPage(w, r, http.StatusOK, "issue", data)
 }
 
 // adminIssuePreview serves the issue's HTML for the iframe on its page, sandboxed: no script,

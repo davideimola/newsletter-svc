@@ -6,6 +6,12 @@
   <a class="stat" href="/admin/subscribers?status=unsubscribed"><b>{{index .Counts "unsubscribed"}}</b>unsubscribed</a>
 </div>
 
+{{if .Delivery}}
+<h2>Delivery, last 30 days</h2>
+<p class="muted">Kannon's counters for every email from the sending domain, confirmations included. Totals only: nothing here says who.</p>
+{{template "delivery" .Delivery}}
+{{end}}
+
 <h2>Issues</h2>
 {{if .Issues}}
 <div class="table-wrap">

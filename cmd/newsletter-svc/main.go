@@ -161,9 +161,13 @@ func serve(ctx context.Context) error {
 
 	go cleanup(ctx, svc)
 
+	handler := server.New(svc, gate, cfg.APIKey)
+	if cfg.KannonAdminToken != "" {
+		handler.WithDelivery(&kannon.Admin{URL: cfg.KannonURL, Token: cfg.KannonAdminToken}, cfg.KannonDomain)
+	}
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           server.New(svc, gate, cfg.APIKey),
+		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	errc := make(chan error, 1)

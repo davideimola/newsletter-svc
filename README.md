@@ -61,7 +61,7 @@ They live in `internal/newsletter`, and its tests are the specification.
 | `GET /confirm?token=` | reader | confirm, then redirect to `SITE_URL/newsletter/confirmed` |
 | `GET /unsubscribe?token=` | reader | page with an Unsubscribe button |
 | `POST /unsubscribe?token=` | reader, mail client | unsubscribe; `List-Unsubscribe=One-Click` is the RFC 8058 form |
-| `/admin` | owner, signed in with Google | counts, subscribers, issues, preview, test, send, delete |
+| `/admin` | owner, signed in with Google | counts, subscribers, issues, preview, test, send, delete, Kannon's delivery counters |
 | `GET /healthz` | cluster | `200` when the database answers |
 
 The issue HTML is the website's to render, footer included. Where each reader's unsubscribe link
@@ -69,7 +69,7 @@ goes, it writes `{{ unsubscribe_url }}`, and Kannon fills it in per recipient.
 
 ## Configuration
 
-Environment variables, all required except `LISTEN_ADDR`.
+Environment variables, all required except `LISTEN_ADDR` and `KANNON_ADMIN_TOKEN`.
 
 | Variable | Example |
 |---|---|
@@ -81,6 +81,7 @@ Environment variables, all required except `LISTEN_ADDR`.
 | `KANNON_URL` | `http://kannon.kannon.svc:50051` |
 | `KANNON_DOMAIN` | `news.davideimola.dev` |
 | `KANNON_API_KEY` | a Kannon API key for that Domain |
+| `KANNON_ADMIN_TOKEN` | optional: Kannon's admin token, so `/admin` shows the delivery counters and checks the Domain's tracking is off. Kannon has no read-only credential, and this service only reads with it |
 | `SENDER_EMAIL`, `SENDER_NAME` | `hello@davideimola.dev`, `Davide Imola` |
 | `TEST_RECIPIENT` | where test sends go |
 | `OWNER_EMAIL` | the one Google account allowed into `/admin` |

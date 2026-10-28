@@ -1,0 +1,20 @@
+{{define "delivery"}}
+{{with .}}
+{{if .Tracking}}
+  {{if .Tracking.Off}}
+  <p class="muted">Tracking on the sending domain: opens off, links off.</p>
+  {{else}}
+  <div class="notice"><b>Tracking is not off on the sending domain:</b> opens {{.Tracking.Opens}}, links {{.Tracking.Links}}. Set it back with Kannon's SetTrackingPolicy (the cluster repo's <code>apps/kannon/README.md</code>).</div>
+  {{end}}
+{{end}}
+{{if .Tracked}}<div class="notice"><b>Kannon counted {{.Tracked}} opens or clicks.</b> With tracking off there should be none: check the Domain's policy and the tracker component.</div>{{end}}
+{{if .Error}}<div class="notice">{{.Error}}</div>{{end}}
+<div class="table-wrap">
+<table>
+  <tr>{{if .Days}}<th>Day (UTC)</th>{{end}}{{range .Types}}<th>{{.}}</th>{{end}}</tr>
+  {{range .Days}}<tr><td class="mono">{{.Day}}</td>{{range .Counts}}<td>{{.}}</td>{{end}}</tr>{{end}}
+  <tr>{{if .Days}}<td><b>Total</b></td>{{end}}{{range .Totals}}<td><b>{{.}}</b></td>{{end}}</tr>
+</table>
+</div>
+{{end}}
+{{end}}

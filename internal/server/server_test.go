@@ -290,3 +290,84 @@ func TestAdminErase(t *testing.T) {
 		t.Fatalf("the address survived: %v", err)
 	}
 }
+
+// delivery stands in for Kannon's Admin and Stats APIs.
+type delivery struct {
+	counts   []kannon.Count
+	tracking kannon.Tracking
+	err      error
+}
+
+func (d *delivery) AggregatedStats(context.Context, string, time.Time, time.Time) ([]kannon.Count, error) {
+	return d.counts, d.err
+}
+
+func (d *delivery) DomainTracking(context.Context, string) (kannon.Tracking, error) {
+	return d.tracking, d.err
+}
+
+func (e *env) ownerGet(t *testing.T, path string) string {
+	t.Helper()
+	req, _ := http.NewRequest("GET", e.srv.URL+path, nil)
+	req.AddCookie(e.gate.SessionCookie())
+	resp, err := noRedirect().Do(req)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		t.Fatalf("%s: %v %v", path, err, resp)
+	}
+	return read(t, resp)
+}
+
+func withDelivery(t *testing.T, d *delivery) *env {
+	t.Helper()
+	e := setup(t)
+	e.srv.Close()
+	h := server.New(e.svc, e.gate, apiKey).WithDelivery(d, "news.example.com")
+	e.srv = httptest.NewServer(h)
+	t.Cleanup(e.srv.Close)
+	return e
+}
+
+var off = kannon.Tracking{Opens: "TRACKING_MODE_OFF", Links: "TRACKING_MODE_OFF"}
+
+func TestDeliveryPanel(t *testing.T) {
+	day := time.Date(2026, 10, 28, 20, 0, 0, 0, time.UTC)
+	e := withDelivery(t, &delivery{tracking: off, counts: []kannon.Count{
+		{Type: "delivered", At: day, Count: 2},
+		{Type: "delivered", At: day.Add(time.Hour), Count: 3},
+		{Type: "bounced", At: day.Add(time.Hour), Count: 1},
+	}})
+	body := e.ownerGet(t, "/admin")
+	for _, want := range []string{"Delivery, last 30 days", "2026-10-28", "<b>5</b>", "opens off, links off"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the overview lacks %q", want)
+		}
+	}
+	if strings.Contains(body, "Tracking is not off") {
+		t.Error("a warning with tracking off")
+	}
+}
+
+func TestDeliveryPanelWarnsWhenTrackingIsOn(t *testing.T) {
+	e := withDelivery(t, &delivery{
+		tracking: kannon.Tracking{Opens: "TRACKING_MODE_IDENTIFIED", Links: "TRACKING_MODE_OFF"},
+		counts:   []kannon.Count{{Type: "opened", At: time.Now(), Count: 4}},
+	})
+	body := e.ownerGet(t, "/admin")
+	if !strings.Contains(body, "Tracking is not off") || !strings.Contains(body, "counted 4 opens or clicks") {
+		t.Errorf("no warning:\n%s", body)
+	}
+}
+
+func TestDeliveryPanelSurvivesKannonDown(t *testing.T) {
+	e := withDelivery(t, &delivery{err: &kannon.RefusedError{Status: 503, Body: "down"}})
+	if body := e.ownerGet(t, "/admin"); !strings.Contains(body, "Kannon did not answer") {
+		t.Errorf("no line about Kannon:\n%s", body)
+	}
+}
+
+func TestNoDeliveryPanelWithoutTheToken(t *testing.T) {
+	e := setup(t)
+	if body := e.ownerGet(t, "/admin"); strings.Contains(body, "Delivery") {
+		t.Error("a delivery panel with nothing to read it from")
+	}
+}

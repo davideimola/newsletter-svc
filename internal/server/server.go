@@ -24,10 +24,12 @@ import (
 )
 
 type Server struct {
-	svc    *newsletter.Service
-	gate   *owner.Gate
-	apiKey string
-	mux    *http.ServeMux
+	svc          *newsletter.Service
+	gate         *owner.Gate
+	apiKey       string
+	mux          *http.ServeMux
+	delivery     Delivery
+	kannonDomain string
 }
 
 func New(svc *newsletter.Service, gate *owner.Gate, apiKey string) *Server {

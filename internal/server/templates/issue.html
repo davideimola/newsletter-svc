@@ -26,6 +26,12 @@
 </dl>
 {{end}}
 
+{{if .Delivery}}
+<h2>Delivery</h2>
+<p class="muted">From the hour of the send to three days after. Kannon counts by domain, not by issue, so confirmation emails sent in those hours are in here too.</p>
+{{template "delivery" .Delivery}}
+{{end}}
+
 {{if eq (print .Issue.Status) "draft"}}
 <h2>Send</h2>
 <div class="box">
