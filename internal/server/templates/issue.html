@@ -1,0 +1,54 @@
+{{define "content"}}
+{{with .Issue}}
+<p class="mono muted">Issue {{.Slug}}</p>
+<h1>{{.Subject}}</h1>
+{{end}}
+
+{{if eq .Notice "test-sent"}}<div class="notice">Test sent to {{.TestRecipient}}.</div>{{end}}
+{{if eq .Notice "test-failed"}}<div class="notice">The test send failed. The logs say why.</div>{{end}}
+{{if eq .Notice "confirm-mismatch"}}<div class="notice">Type the issue's slug exactly to send it.</div>{{end}}
+{{if eq .Notice "not-tested"}}<div class="notice">Send a test of this version first.</div>{{end}}
+{{if eq .Notice "already-sent"}}<div class="notice">This issue has already gone out, or is going out.</div>{{end}}
+{{if eq .Notice "send-failed"}}<div class="notice">The send failed. Read the error below before doing anything.</div>{{end}}
+{{if eq .Notice "sent"}}<div class="notice">Sent.</div>{{end}}
+
+{{with .Issue}}
+<dl>
+  <dt>Status</dt><dd><span class="pill">{{.Status}}</span></dd>
+  <dt>Last change</dt><dd class="mono">{{date .UpdatedAt}}</dd>
+  <dt>Last test</dt><dd class="mono">{{date .TestSentAt}}{{if and .TestSentAt (not .Tested)}} (older than the last change){{end}}</dd>
+  {{if .SentAt}}
+  <dt>Sent</dt><dd class="mono">{{date .SentAt}}</dd>
+  <dt>Recipients</dt><dd>{{deref .Recipients}} ({{deref .Accepted}} accepted, {{deref .Rejected}} refused at intake)</dd>
+  <dt>Kannon batch</dt><dd class="mono">{{.KannonMessageID}}</dd>
+  {{end}}
+  {{if .LastError}}<dt>Error</dt><dd class="mono">{{.LastError}}</dd>{{end}}
+</dl>
+{{end}}
+
+{{if eq (print .Issue.Status) "draft"}}
+<h2>Send</h2>
+<div class="box">
+  <form class="inline" method="post" action="/admin/issues/{{.Issue.Slug}}/test">
+    <input type="hidden" name="csrf" value="{{.CSRF}}">
+    <button class="secondary" type="submit">Send a test to {{.TestRecipient}}</button>
+  </form>
+</div>
+<div class="box">
+  {{if .Issue.Tested}}
+  <p>Send this issue to <b>{{.Confirmed}}</b> confirmed {{if eq .Confirmed 1}}subscriber{{else}}subscribers{{end}}. It goes out once and cannot be recalled.</p>
+  <form class="inline" method="post" action="/admin/issues/{{.Issue.Slug}}/send">
+    <input type="hidden" name="csrf" value="{{.CSRF}}">
+    <input type="text" name="confirm" placeholder="Type {{.Issue.Slug}}" aria-label="Type the issue slug to confirm" autocomplete="off" required>
+    <button type="submit">Send to everyone</button>
+  </form>
+  {{else}}
+  <p class="muted">The send unlocks once this version has been test-sent.</p>
+  {{end}}
+</div>
+{{end}}
+
+<h2>Preview</h2>
+<p class="muted">The HTML as stored. Each recipient's copy has their own link where <code>{{"{{ unsubscribe_url }}"}}</code> is.</p>
+<iframe src="/admin/issues/{{.Issue.Slug}}/preview" title="Issue preview" sandbox></iframe>
+{{end}}

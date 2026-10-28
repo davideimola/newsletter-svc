@@ -1,0 +1,28 @@
+{{define "content"}}
+<h1>Overview</h1>
+<div class="stats">
+  <a class="stat" href="/admin/subscribers?status=confirmed"><b>{{index .Counts "confirmed"}}</b>confirmed</a>
+  <a class="stat" href="/admin/subscribers?status=pending"><b>{{index .Counts "pending"}}</b>waiting for confirmation</a>
+  <a class="stat" href="/admin/subscribers?status=unsubscribed"><b>{{index .Counts "unsubscribed"}}</b>unsubscribed</a>
+</div>
+
+<h2>Issues</h2>
+{{if .Issues}}
+<div class="table-wrap">
+<table>
+  <tr><th>Issue</th><th>Subject</th><th>Status</th><th>Sent</th><th>Recipients</th></tr>
+  {{range .Issues}}
+  <tr>
+    <td class="mono"><a href="/admin/issues/{{.Slug}}">{{.Slug}}</a></td>
+    <td>{{.Subject}}</td>
+    <td><span class="pill">{{.Status}}</span></td>
+    <td class="mono">{{date .SentAt}}</td>
+    <td>{{if .Recipients}}{{deref .Recipients}}{{else}}-{{end}}</td>
+  </tr>
+  {{end}}
+</table>
+</div>
+{{else}}
+<p class="muted">No issue yet. The website's <code>pnpm newsletter:draft</code> uploads one here and sends you its test.</p>
+{{end}}
+{{end}}

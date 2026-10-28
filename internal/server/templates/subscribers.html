@@ -1,0 +1,30 @@
+{{define "content"}}
+<h1>Subscribers</h1>
+<form class="inline" method="get" action="/admin/subscribers">
+  <input type="search" name="q" value="{{.Search}}" placeholder="Search an address" aria-label="Search an address">
+  <select name="status" aria-label="Status">
+    <option value="">All</option>
+    {{$current := .Status}}
+    {{range .Statuses}}<option value="{{.}}"{{if eq (print .) $current}} selected{{end}}>{{.}}</option>{{end}}
+  </select>
+  <button type="submit">Filter</button>
+</form>
+<p class="muted">{{.Total}} {{if eq .Total 1}}address{{else}}addresses{{end}}</p>
+{{if .Subscribers}}
+<div class="table-wrap">
+<table>
+  <tr><th>Address</th><th>Status</th><th>Asked</th><th>Confirmed</th><th>Source</th></tr>
+  {{range .Subscribers}}
+  <tr>
+    <td><a href="/admin/subscribers/{{.ID}}">{{.Email}}</a></td>
+    <td><span class="pill">{{.Status}}</span></td>
+    <td class="mono">{{date .CreatedAt}}</td>
+    <td class="mono">{{date .ConfirmedAt}}</td>
+    <td class="mono">{{.Source}}</td>
+  </tr>
+  {{end}}
+</table>
+</div>
+{{end}}
+<p>{{if .Prev}}<a href="{{.Prev}}">Newer</a>{{end}} {{if .Next}}<a href="{{.Next}}">Older</a>{{end}}</p>
+{{end}}

@@ -1,0 +1,9 @@
+{{define "content"}}
+<h1>Unsubscribe</h1>
+<p>Stop sending the newsletter to <b>{{.Email}}</b>?</p>
+<form method="post" action="/unsubscribe">
+  <input type="hidden" name="token" value="{{.Token}}">
+  <button type="submit">Unsubscribe</button>
+</form>
+<p class="muted">One click and it is done: nothing else to confirm.</p>
+{{end}}

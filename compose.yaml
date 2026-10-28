@@ -1,0 +1,9 @@
+# The Postgres the tests use. `docker compose up -d`, then `go test ./...`.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: newsletter
+    ports:
+      - "127.0.0.1:55432:5432"

@@ -1,0 +1,62 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{if .Admin}}Newsletter admin{{else}}{{.Title}}{{end}}</title>
+<style>
+  :root { --bg:#F7F5F0; --fg:#1C2233; --body:#2A3042; --muted:#5B6070; --border:#DEDCD5; --surface:#FFFFFF; --inline:#EDEAE3; --accent:#C91F37; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#13151C; --fg:#ECE9E2; --body:#D6D3CC; --muted:#8E8C86; --border:#2C3040; --surface:#1B1E27; --inline:#262A35; --accent:#E0475C; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--body); font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+  .narrow { max-width: 560px; }
+  h1, h2 { color:var(--fg); line-height:1.2; }
+  h1 { font-size: 28px; margin: 0 0 16px; }
+  h2 { font-size: 20px; margin: 32px 0 12px; }
+  a { color: var(--fg); }
+  a:hover { color: var(--accent); }
+  .mono, code, td.mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .muted { color: var(--muted); }
+  nav { display:flex; flex-wrap:wrap; gap: 8px 20px; align-items:center; border-bottom:1px solid var(--border); padding-bottom: 12px; margin-bottom: 24px; }
+  nav .brand { font-weight:700; color:var(--fg); text-decoration:none; }
+  nav .spacer { flex:1; }
+  nav form { margin:0; }
+  .stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stat { background:var(--surface); border:1px solid var(--border); padding: 16px; }
+  .stat b { display:block; font-size: 28px; color:var(--fg); }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse: collapse; background:var(--surface); border:1px solid var(--border); }
+  th, td { text-align:left; padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .pill { display:inline-block; font-size: 12px; padding: 1px 8px; border:1px solid var(--border); border-radius: 999px; background: var(--inline); }
+  button, .button { font: inherit; font-size: 15px; background: var(--fg); color: var(--bg); border: 1px solid var(--fg); padding: 8px 16px; cursor: pointer; text-decoration: none; display:inline-block; }
+  button.secondary { background: transparent; color: var(--fg); }
+  input[type=text], input[type=search], select { font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); }
+  form.inline { display:flex; flex-wrap:wrap; gap: 8px; align-items:center; }
+  .box { background:var(--surface); border:1px solid var(--border); padding: 16px; margin: 16px 0; }
+  .notice { border-left: 3px solid var(--fg); background: var(--surface); padding: 10px 14px; margin: 16px 0; }
+  dl { display:grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  iframe { width: 100%; height: 720px; border: 1px solid var(--border); background: #fff; }
+</style>
+</head>
+<body>
+<main{{if not .Admin}} class="narrow"{{end}}>
+{{if .Admin}}
+<nav>
+  <a class="brand" href="/admin">Newsletter</a>
+  <a href="/admin/subscribers">Subscribers</a>
+  <span class="spacer"></span>
+  <span class="muted mono">{{.Owner}}</span>
+  <form method="post" action="/auth/logout"><button class="secondary" type="submit">Sign out</button></form>
+</nav>
+{{end}}
+{{template "content" .}}
+</main>
+</body>
+</html>{{end}}
